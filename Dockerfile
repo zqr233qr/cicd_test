@@ -1,11 +1,14 @@
 # 第一阶段：构建阶段
-FROM golang:1.23-alpine AS builder
+# 使用标准 Debian 镜像替代 Alpine，解决潜在的网络/DNS/libc 兼容性问题
+FROM golang:1.23 AS builder
 
 # 设置工作目录
 WORKDIR /app
 
+# 设置 GOPROXY 确保下载顺利
+ENV GOPROXY=https://proxy.golang.org,direct
+
 # 复制 go.mod 和 go.sum (如果有) 并下载依赖
-# 这步利用 Docker 缓存，如果依赖没变，就不会重新下载
 COPY go.mod go.sum ./
 RUN go mod download
 
@@ -13,8 +16,7 @@ RUN go mod download
 COPY . .
 
 # 编译应用
-# CGO_ENABLED=0 禁用 CGO，确保生成静态链接的可执行文件
-# -o main 指定输出文件名为 main
+# CGO_ENABLED=0 仍然很重要，因为我们需要静态链接二进制文件以在 alpine 中运行
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
 # 第二阶段：运行阶段
