@@ -79,3 +79,46 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    name: Deploy to Server
+    needs: docker-build
+    runs-on: ubuntu-latest
+    # 仅在 main 分支推送时部署，且确保 Secrets 已配置（避免无配置时报错）
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Deploy using SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          # 动态引用镜像标签
+          IMAGE_TAG: ghcr.io/${{ github.repository }}:main
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          # port: ${{ secrets.SERVER_PORT }} # 如果不是 22 端口，请取消注释并配置
+          envs: IMAGE_TAG
+          script: |
+            echo "Deploying $IMAGE_TAG..."
+            
+            # 1. 登录 GHCR (如果服务器之前没登录过)
+            # 注意：这里的 token 最好也是通过 secrets 传递，或者服务器上已经 docker login 过了
+            # echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # 2. 拉取最新镜像
+            docker pull $IMAGE_TAG
+            
+            # 3. 停止并删除旧容器 (如果存在)
+            # || true 表示即使容器不存在也不报错
+            docker stop cicd-app || true
+            docker rm cicd-app || true
+            
+            # 4. 启动新容器
+            docker run -d \
+              --name cicd-app \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              $IMAGE_TAG
+              
+            echo "Deployment successful!"

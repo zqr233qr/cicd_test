@@ -37,6 +37,19 @@
 - [x] 使用 `docker/metadata-action` 自动管理镜像标签。
 - [x] 启用 `push: true` 将镜像推送到 GHCR。
 
+## 2025年12月17日 - 配置 CD 自动部署 (SSH)
+- [x] 更新 `ci.yml`，添加 `deploy` 任务。
+- [x] 使用 `appleboy/ssh-action` 插件实现远程 SSH 执行。
+- [ ] **手动操作**: 在 GitHub 仓库设置中添加 Secrets 以启用部署。
+
+### 部署配置指南 (Secrets)
+若要启用自动部署，请在 GitHub 仓库的 **Settings -> Secrets and variables -> Actions** 中添加以下 Secrets：
+1. `SERVER_HOST`: 目标服务器的 IP 地址或域名。
+2. `SERVER_USER`: SSH 登录用户名 (如 `root`, `ubuntu`).
+3. `SERVER_SSH_KEY`: SSH 私钥内容 (对应服务器 `~/.ssh/authorized_keys` 中的公钥)。
+
+**注意**: 目标服务器需要预先安装 Docker，并确保有权限拉取 GHCR 镜像 (可能需要运行一次 `docker login ghcr.io -u <user> -p <token>`)。
+
 ## 待办事项
-- [ ] 将代码推送到 GitHub 仓库以触发 CI/CD。
-- [ ] 在 GitHub 个人主页的 Packages 标签页查看推送成功的镜像。
+- [ ] (可选) 配置真实的服务器 Secrets 并验证部署。
+- [ ] 享受自动化带来的便利！
