@@ -1,6 +1,6 @@
 # 第一阶段：构建阶段
-# 使用标准 Debian 镜像替代 Alpine，解决潜在的网络/DNS/libc 兼容性问题
-FROM golang:1.25 AS builder
+# 使用 Alpine 版本镜像以优化体积
+FROM golang:1.25-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app

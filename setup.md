@@ -17,9 +17,22 @@
 
 ## 2025年12月17日 - 配置 Docker (CD)
 - [x] 创建 `Dockerfile`，采用多阶段构建优化镜像体积。
-- [ ] 更新 GitHub Actions 配置，增加 Docker 构建步骤。
-- [ ] 验证 CI/CD 流程。
+- [x] 更新 GitHub Actions 配置，增加 Docker 构建步骤。
+- [x] 验证 CI/CD 流程。
+
+### Docker 构建问题排查与解决
+- **问题 1 (首次构建失败)**: `go mod download` 失败，提示 `fatal: pathspec 'go.sum' did not match any files` 或 `无文件要提交，干净的工作区`。
+    - **原因**: 初始项目无外部依赖，`go mod tidy` 未生成 `go.sum`，导致 `Dockerfile` 中 `COPY go.sum` 和 `go mod download` 步骤失败。
+    - **解决方案**: 暂时移除 `Dockerfile` 中 `go mod download` 步骤，让 `go build` 自动处理。
+- **问题 2 (Go Gin 框架引入后再次构建失败)**: `go mod download` 再次失败，提示 `go: go.mod requires go >= 1.24.0 (running go 1.23.12; GOTOOLCHAIN=local)`。
+    - **原因**: `go.mod` 文件（因引入 Gin 依赖后）实际要求 Go 1.24.0 及以上版本，但 `Dockerfile` 中使用的 `golang:1.23-alpine` 镜像只包含 Go 1.23.12。Go 版本不匹配导致依赖下载失败。
+    - **解决方案**: 将 `Dockerfile` 中的基础镜像从 `golang:1.23-alpine` 切换到 `golang:1.25`（非 Alpine 版，更稳定），并将 `go.mod` 中的 Go 版本声明也更新为 `1.25.0`。
+- **问题 3 (本次操作)**: 确认 Go 版本匹配后，重新尝试使用 `golang:1.25-alpine`。
+    - **原因**: 经过前两次排查，我们已经明确问题是 Go 版本不兼容，而非 Alpine 镜像本身。现在 Go 版本已匹配，可以再次尝试 Alpine 镜像以获得更小的最终镜像体积。
+    - **解决方案**: 修改 `Dockerfile`，将构建阶段的基础镜像切换回 `golang:1.25-alpine`。
 
 ## 待办事项
 - [ ] 将代码推送到 GitHub 仓库以触发 CI/CD。
 - [ ] 观察 GitHub Actions 的运行结果。
+- [ ] 学习如何将 Docker 镜像推送到 GitHub Container Registry (GHCR)。
+- [ ] 模拟 CD 部署流程。
