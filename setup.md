@@ -31,8 +31,12 @@
     - **原因**: 经过前两次排查，我们已经明确问题是 Go 版本不兼容，而非 Alpine 镜像本身。现在 Go 版本已匹配，可以再次尝试 Alpine 镜像以获得更小的最终镜像体积。
     - **解决方案**: 修改 `Dockerfile`，将构建阶段的基础镜像切换回 `golang:1.25-alpine`。
 
+## 2025年12月17日 - 配置 Docker Registry (GHCR)
+- [x] 更新 `ci.yml`，添加 `permissions: packages: write`。
+- [x] 添加 `docker/login-action` 步骤登录 ghcr.io。
+- [x] 使用 `docker/metadata-action` 自动管理镜像标签。
+- [x] 启用 `push: true` 将镜像推送到 GHCR。
+
 ## 待办事项
 - [ ] 将代码推送到 GitHub 仓库以触发 CI/CD。
-- [ ] 观察 GitHub Actions 的运行结果。
-- [ ] 学习如何将 Docker 镜像推送到 GitHub Container Registry (GHCR)。
-- [ ] 模拟 CD 部署流程。
+- [ ] 在 GitHub 个人主页的 Packages 标签页查看推送成功的镜像。
