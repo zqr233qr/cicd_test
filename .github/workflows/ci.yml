@@ -1,0 +1,40 @@
+name: Go CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. 拉取代码
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. 设置 Go 环境
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23' # 你可以根据需要指定具体版本，或使用 'stable'
+        check-latest: true
+
+    # 3. 打印 Go 版本（用于调试记录）
+    - name: Print Go version
+      run: go version
+
+    # 4. 下载依赖（如果后续添加了第三方库）
+    - name: Get dependencies
+      run: go mod download
+
+    # 5. 运行测试
+    - name: Test
+      run: go test -v ./...
+
+    # 6. 构建项目
+    - name: Build
+      run: go build -v ./...
