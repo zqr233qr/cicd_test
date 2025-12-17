@@ -4,11 +4,9 @@ FROM golang:1.23-alpine AS builder
 # 设置工作目录
 WORKDIR /app
 
-# 复制 go.mod 和 go.sum (如果有) 并下载依赖
-# 这步利用 Docker 缓存，如果依赖没变，就不会重新下载
-COPY go.mod ./
-# COPY go.sum ./ # 当前项目简单暂无 go.sum，后续有了可以取消注释
-RUN go mod download
+# 复制 go.mod 和 go.sum (如果有)
+# COPY go.mod go.sum ./
+# RUN go mod download
 
 # 复制源代码
 COPY . .
