@@ -18,3 +18,9 @@
 - 配置文件: `.github/workflows/ci.yml`
 - 触发条件: Push 或 Pull Request 到 `main` 分支
 - 执行内容: 代码检查、测试、构建
+
+## 持续部署 (CD)
+- Docker 镜像会自动构建并推送到 GitHub Container Registry (GHCR)。
+- 部署脚本已集成到 GitHub Actions，通过 SSH 连接到目标服务器进行自动部署。
+  - 配置文件: `.github/workflows/ci.yml` 中的 `deploy` 任务。
+  - Secrets 配置: 需在 GitHub 仓库中配置 `SERVER_HOST`, `SERVER_USER`, `SERVER_SSH_KEY`。

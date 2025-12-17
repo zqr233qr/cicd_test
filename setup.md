@@ -48,8 +48,38 @@
 2. `SERVER_USER`: SSH 登录用户名 (如 `root`, `ubuntu`).
 3. `SERVER_SSH_KEY`: SSH 私钥内容 (对应服务器 `~/.ssh/authorized_keys` 中的公钥)。
 
-**注意**: 目标服务器需要预先安装 Docker，并确保有权限拉取 GHCR 镜像 (可能需要运行一次 `docker login ghcr.io -u <user> -p <token>`)。
+**配置 SSH 密钥的详细步骤：**
+1.  **在本地生成 SSH 密钥对** (如果尚未生成):
+    ```bash
+    ssh-keygen -t rsa -b 4096 -C "your_email@example.com_github_actions" -f ~/.ssh/github_actions_deploy_key
+    # 提示输入密码时，直接回车 (不设置密码)，以方便 GitHub Actions 免密使用。
+    ```
+    这会生成两个文件：
+    *   `~/.ssh/github_actions_deploy_key` (私钥)
+    *   `~/.ssh/github_actions_deploy_key.pub` (公钥)
+2.  **将公钥配置到你的云服务器**:
+    *   登录到你的云服务器。
+    *   确保 `~/.ssh` 目录存在且权限正确 (`chmod 700 ~/.ssh`)。
+    *   确保 `~/.ssh/authorized_keys` 文件存在且权限正确 (`chmod 600 ~/.ssh/authorized_keys`)。
+    *   将本地生成的 **公钥** (`~/.ssh/github_actions_deploy_key.pub`) 的内容**追加**到服务器的 `~/.ssh/authorized_keys` 文件中。
+        ```bash
+        cat ~/.ssh/github_actions_deploy_key.pub # 在本地查看公钥内容
+        # 复制内容后，在服务器执行：
+        echo "你的公钥内容" >> ~/.ssh/authorized_keys
+        ```
+3.  **获取私钥内容并添加到 GitHub Secrets**:
+    *   在本地查看 **私钥** (`~/.ssh/github_actions_deploy_key`) 的所有内容：
+        ```bash
+        cat ~/.ssh/github_actions_deploy_key
+        ```
+    *   **复制所有内容**，包括 `-----BEGIN OPENSSH PRIVATE KEY-----` 和 `-----END OPENSSH PRIVATE KEY-----`。
+    *   将此内容粘贴到 GitHub 仓库 **Settings -> Secrets and variables -> Actions** 中，作为 `SERVER_SSH_KEY` 的值。
+
+**重要注意事项**:
+*   目标服务器需要预先安装 Docker。
+*   服务器可能需要运行一次 `docker login ghcr.io -u <你的GitHub用户名> -p <你的GitHub个人访问令牌>`，才能拉取 GitHub Container Registry 的私有镜像。或者，你可以在 `deploy` Job 的 SSH 脚本中添加 `docker login` 命令，使用 `secrets.GITHUB_TOKEN` (但 `GITHUB_TOKEN` 有时权限受限，建议使用独立的 PAT)。当前脚本中为了简化，没有包含 `docker login`，假定服务器已登录或镜像为公共。
+*   `SERVER_SSH_KEY` 务必保管好，不要泄露！
 
 ## 待办事项
-- [ ] (可选) 配置真实的服务器 Secrets 并验证部署。
+- [x] (可选) 配置真实的服务器 Secrets 并验证部署。
 - [ ] 享受自动化带来的便利！
