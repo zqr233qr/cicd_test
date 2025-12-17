@@ -15,7 +15,11 @@
     - Run Build (构建检查)
 - [x] 更新文档说明。
 
+## 2025年12月17日 - 配置 Docker (CD)
+- [x] 创建 `Dockerfile`，采用多阶段构建优化镜像体积。
+- [ ] 更新 GitHub Actions 配置，增加 Docker 构建步骤。
+- [ ] 验证 CI/CD 流程。
+
 ## 待办事项
-- [ ] 将代码推送到 GitHub 仓库以触发 CI。
+- [ ] 将代码推送到 GitHub 仓库以触发 CI/CD。
 - [ ] 观察 GitHub Actions 的运行结果。
-- [ ] 模拟 CD 部署流程。

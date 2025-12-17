@@ -38,3 +38,29 @@ jobs:
     # 6. 构建项目
     - name: Build
       run: go build -v ./...
+
+  docker-build:
+    name: Build Docker Image
+    needs: build-and-test # 只有当 build-and-test 成功后才会运行
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # 设置 QEMU (可选，用于多架构构建)
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
+      
+      # 设置 Docker Buildx (构建 Docker 镜像的推荐工具)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      # 构建镜像 (暂时不推送)
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false # 仅构建验证，不推送到仓库
+          tags: cicd-test:latest
