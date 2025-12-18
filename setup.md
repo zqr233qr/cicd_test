@@ -80,6 +80,24 @@
 *   服务器可能需要运行一次 `docker login ghcr.io -u <你的GitHub用户名> -p <你的GitHub个人访问令牌>`，才能拉取 GitHub Container Registry 的私有镜像。或者，你可以在 `deploy` Job 的 SSH 脚本中添加 `docker login` 命令，使用 `secrets.GITHUB_TOKEN` (但 `GITHUB_TOKEN` 有时权限受限，建议使用独立的 PAT)。当前脚本中为了简化，没有包含 `docker login`，假定服务器已登录或镜像为公共。
 *   `SERVER_SSH_KEY` 务必保管好，不要泄露！
 
+## 2025年12月17日 - 配置版本发布管理 (Release)
+- [x] 更新 `ci.yml`，添加 `tags: ["v*"]` 触发器。
+- [x] 配置 `docker/metadata-action` 支持 SemVer 标签 (如 `v1.0.0` -> Docker tag `1.0.0`)。
+- [x] 添加 `create-release` 任务，使用 `softprops/action-gh-release` 自动创建 GitHub Release。
+
+### 版本发布操作指南
+1.  **开发完成**：确保代码已合并到 `main` 分支。
+2.  **打标签**：
+    ```bash
+    git tag v1.0.0
+    git push origin v1.0.0
+    ```
+3.  **自动化流程**：
+    - GitHub Actions 会被触发。
+    - 自动测试 & 构建。
+    - 推送 Docker 镜像 `ghcr.io/user/repo:1.0.0` 和 `1.0`。
+    - 在 GitHub 仓库的 Releases 页面自动创建一个名为 `v1.0.0` 的 Release，包含自动生成的变更日志。
+
 ## 待办事项
 - [x] (可选) 配置真实的服务器 Secrets 并验证部署。
-- [ ] 享受自动化带来的便利！
+- [ ] 尝试发布第一个版本 `v0.1.0`！
