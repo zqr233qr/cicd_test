@@ -222,3 +222,14 @@ jobs:
 *   **`docker/metadata-action`**: **神级插件**。自动根据 Git 分支/标签生成 Docker 镜像的 Tag（如自动处理 `latest`, `1.0.0`）。
 *   **`docker/build-push-action`**: 执行 Docker 构建和推送。
 *   **`appleboy/ssh-action`**: (非官方但流行) 通过 SSH 连接远程服务器执行部署脚本。
+
+### Q7: 真实开发中的测试依赖本地环境（如 DB），CI 跑不通怎么办？
+这是一个非常常见的问题。可以采用以下几种策略：
+
+1.  **跳过测试 (Skip)**: 在 Go 测试代码中检查 `CI` 环境变量。
+    ```go
+    if os.Getenv("CI") != "" { t.Skip("Skipping in CI") }
+    ```
+2.  **补齐环境 (Services)**: 在 `.yml` 中使用 `services` 关键字启动 MySQL/Redis 容器，让 CI 环境拥有和开发环境一样的数据库。
+3.  **允许失败**: 给测试步骤添加 `continue-on-error: true`，虽然测试红了，但不会阻断构建和发布（慎用）。
+4.  **Mock (推荐)**: 优化代码，使用接口和 Mock 技术将外部依赖剥离，编写纯粹的单元测试。
