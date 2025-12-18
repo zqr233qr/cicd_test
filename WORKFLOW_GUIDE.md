@@ -232,4 +232,60 @@ jobs:
     ```
 2.  **补齐环境 (Services)**: 在 `.yml` 中使用 `services` 关键字启动 MySQL/Redis 容器，让 CI 环境拥有和开发环境一样的数据库。
 3.  **允许失败**: 给测试步骤添加 `continue-on-error: true`，虽然测试红了，但不会阻断构建和发布（慎用）。
-4.  **Mock (推荐)**: 优化代码，使用接口和 Mock 技术将外部依赖剥离，编写纯粹的单元测试。
+4. **Mock (推荐)**: 优化代码，使用接口和 Mock 技术将外部依赖剥离，编写纯粹的单元测试。
+
+---
+
+## 5. 附录：企业级 GitLab CI/CD 迁移指南
+
+在企业内部开发中，GitLab CI/CD 是主流选择。如果你掌握了 GitHub Actions，迁移到 GitLab CI 只需要适应其“方言”。
+
+### 核心思维差异
+
+| 特性 | GitHub Actions | GitLab CI/CD |
+| :--- | :--- | :--- |
+| **配置文件** | `.github/workflows/*.yml` | 根目录 `.gitlab-ci.yml` |
+| **执行环境** | `runs-on` + `uses: setup-xxx` (插件安装环境) | **`image: xxx`** (直接在 Docker 容器内运行) |
+| **流程控制** | `needs: [job-a]` (依赖图) | `stages: [build, test, deploy]` (线性阶段) |
+| **Docker构建**| 使用 `setup-buildx` 插件 | 使用 **Docker-in-Docker (dind)** 服务 |
+
+### 翻译对照表 (.gitlab-ci.yml 示例)
+
+```yaml
+# 1. 定义执行顺序 (Stage)
+stages:
+  - test
+  - build
+  - deploy
+
+# 2. 测试阶段 (对应 build-and-test)
+test_job:
+  stage: test
+  image: golang:1.25-alpine # 直接使用 Go 镜像
+  script:
+    - go test -v ./...
+
+# 3. 构建阶段 (对应 docker-build)
+build_image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind # 启用 Docker 守护进程
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+# 4. 部署阶段 (对应 deploy)
+deploy_prod:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add openssh-client # 安装 SSH 工具
+    # ... 配置 SSH Key ...
+  script:
+    - ssh user@host "docker pull ... && docker run ..."
+  only:
+    - main
+```
+
